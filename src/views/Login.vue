@@ -1,6 +1,9 @@
 <template>
     <div>
-        <el-form :rules="rules" ref="loginForm" :model="loginForm" class="loginContainer">
+        <el-form :rules="rules"
+                 ref="loginForm"
+                 :model="loginForm"
+                 class="loginContainer">
             <h3 class="loginTitle">
                 系统登录
             </h3>
@@ -15,10 +18,12 @@
             <el-form-item prop="code">
                 <el-input type="text" auto-complete="false" v-model="loginForm.code" placeholder="请输入验证码"
                           style="width: 250px; margin-right: 5px;"></el-input>
-                <img :src="captchaUrl">
+                <img :src="captchaUrl" object-fit="contain" @click="updateCaptcha">
             </el-form-item>
-            <el-checkbox v-model="checked" style="text-align: left; margin: 0px 0px 15px 0px;">记住我</el-checkbox>
-            <el-button type="primary" style="width: 100%" @click="submitLogin">登录</el-button>
+            <el-checkbox v-model="checked" style="text-align: left; margin-bottom: 15px;margin-top: 10px;height: auto">记住我</el-checkbox>
+            <el-button style="float: right"
+                    @click="toRegister">注册</el-button>
+            <el-button type="primary" style="width: 100%;margin-left: 0px" @click="submitLogin">登录</el-button>
         </el-form>
     </div>
 </template>
@@ -28,10 +33,12 @@
         name: "Login",
         data() {
             return {
-                captchaUrl: '',
+                captchaUrl: '/captcha?time=' + new Date(),
+                user:[],
+                tokenStr:'',
                 loginForm: {
-                    username: 'admin',
-                    password: '123',
+                    username: '',
+                    password: '',
                     code: ''
                 },
                 checked: true,
@@ -43,16 +50,30 @@
             }
         },
         methods: {
+            updateCaptcha() {
+                this.captchaUrl = '/captcha?time' + new Date();
+            },
             submitLogin() {
                 this.$refs.loginForm.validate((valid) => {
                     if (valid) {
-                        alert('submit!');
+                        this.postRequest('/login', this.loginForm).then(resp => {
+                            if (resp) {
+                                //存储用户token
+                                this.tokenStr = resp.obj.token;
+                                window.sessionStorage.setItem('tokenStr', this.tokenStr);
+                                //跳转首页
+                                this.$router.replace('/home');
+                            }
+                        });
                     } else {
                         this.$message.error('请输入所有字段！');
                         return false;
                     }
                 });
             },
+            toRegister(){
+                this.$router.push('/register');
+            }
         }
     }
 </script>
@@ -72,5 +93,10 @@
     .loginTitle {
         margin: 0px auto 40px auto;
         text-align: center;
+    }
+
+    .el-form-item__content {
+        display: flex;
+        align-items: center;
     }
 </style>
