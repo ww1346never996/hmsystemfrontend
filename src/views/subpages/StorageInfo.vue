@@ -1,5 +1,6 @@
 <template>
     <div>
+        <!--     药品添加、修改弹出框       -->
         <div>
             <el-dialog title="药品添加/修改" :visible.sync="dialogFormVisible">
                 <el-form :model="medicineform">
@@ -28,8 +29,10 @@
                 </div>
             </el-dialog>
         </div>
+        <!--     药品库存列表       -->
         <div>
-            <el-table :data="medicineTable">
+            <el-table border
+                    :data="medicineTable">
                 <el-table-column
                         prop="medicinenum"
                         label="药品编号">

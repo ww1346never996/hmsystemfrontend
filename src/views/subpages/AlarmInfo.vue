@@ -1,7 +1,9 @@
 <template>
+    <!--     库存预警列表       -->
     <div>
         <el-button type="primary" @click="generateOrderForm">生成订货单</el-button>
-        <el-table :row-class-name="tableRowClassName"
+        <el-table border
+                  :row-class-name="tableRowClassName"
                   :data="alarmStorage">
             <el-table-column
                     prop="medicineName"
@@ -9,7 +11,7 @@
             </el-table-column>
             <el-table-column
                     prop="alarmStorageNum"
-                    label="存储数量">
+                    label="库存预警量">
             </el-table-column>
             <el-table-column label="操作">
                 <template slot-scope="scope">

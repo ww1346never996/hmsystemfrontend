@@ -1,6 +1,18 @@
 <template>
     <div>
         <div>
+            <!-- 搜索框 -->
+            <el-input
+                    style="width: 20%;margin-bottom: 20px"
+                    type="text"
+                    v-model="selectVal"
+                    placeholder="搜索单据"
+            ></el-input>
+            <el-button style="margin-left: 10px" type="" @click="searchData">查找</el-button>
+            <el-button style="margin-left: 10px" type="" @click="reset">取消</el-button>
+        </div>
+        <!--     单据详情弹出框       -->
+        <div>
             <el-dialog title="药品清单" :visible.sync="dialogTableVisible">
                 <el-select v-model="stateValue" clearable placeholder="请选择单据状态">
                     <el-option v-for="item in options"
@@ -9,7 +21,8 @@
                                :value="item.stateValue">
                     </el-option>
                 </el-select>
-                <el-table :data="dialogData">
+                <el-table border
+                        :data="dialogData">
                     <el-table-column
                             prop="medicineName"
                             label="药品名称">
@@ -39,8 +52,10 @@
                 </el-button>
             </el-dialog>
         </div>
+        <!--     采购单列表       -->
         <div>
-            <el-table :data="documentInfo"
+            <el-table :data="storageSearchData"
+                      border
                       :row-class-name="tableRowClassName"
                       row-key="docNum">
                 <el-table-column
@@ -94,7 +109,9 @@
                 medicinenum: '',
                 medicinePrice: '',
                 medicinenumber: '',
-                medicineName: ''
+                medicineName: '',
+                storageSearchData: [],
+                selectVal: '',
             }
         },
         watch: {
@@ -126,6 +143,21 @@
                 this.$http.get('/medicinetable/medicineInfo').then(resp => {
                     this.medicineInfo = resp
                 })
+            },
+            searchData() {
+                //并没有输入关键字时，就不要再搜索了
+                if (this.selectVal === '' || this.selectVal == null) {
+                    this.storageSearchData = JSON.parse(JSON.stringify(this.storageSearchData));
+                    return;
+                }
+                this.storageSearchData = this.documentInfo;
+                //搜索
+                let list = this.storageSearchData.filter(item => item.docNum.toString().indexOf(this.selectVal) >= 0);
+                this.storageSearchData = list;
+            },
+            reset() {
+                this.storageSearchData = JSON.parse(JSON.stringify(this.documentInfo));
+                this.selectVal = null;
             },
             showDialog(row) {
                 this.subData = row;

@@ -1,5 +1,6 @@
 <template>
     <div>
+        <!--     添加制造商信息输入框       -->
         <div style="display: inline;align-items: center">
             <el-input v-model="input"
                       style="float: left;width: 67%"
@@ -11,6 +12,7 @@
                     type="primary" icon="el-icon-edit" @click="insertManufacture"
                     circle></el-button>
         </div>
+        <!--     制造商信息列表       -->
         <div>
             <el-table :data="manufactureTable">
                 <el-table-column

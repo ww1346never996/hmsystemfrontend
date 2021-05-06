@@ -10,7 +10,8 @@ import StorageOut from "../views/subpages/StorageOut";
 import StorageIn from "../views/subpages/StorageIn";
 import OrderPage from "../views/subpages/OrderPage";
 import AlarmInfo from "../views/subpages/AlarmInfo";
-import SystemInfo from "../views/subpages/SystemInfo";
+import SystemInfo from "../views/subpages/RationInfo";
+import RationInfo from "../views/subpages/RationInfo";
 
 Vue.use(VueRouter)
 
@@ -91,13 +92,13 @@ const routes = [
   },
   {
     path: '/home',
-    name: '系统管理',
+    name: '配给管理',
     component: Home,
     children:[
       {
-        path: '/SystemInfo',
-        name: '系统运行状态概览',
-        component: SystemInfo
+        path: '/RationInfo',
+        name: '科室配给管理',
+        component: RationInfo
       },
     ]
   }

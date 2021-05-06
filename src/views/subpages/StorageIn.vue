@@ -1,6 +1,18 @@
 <template>
     <div>
         <div>
+            <!-- 搜索框 -->
+            <el-input
+                    style="width: 20%;margin-bottom: 20px"
+                    type="text"
+                    v-model="selectVal"
+                    placeholder="搜索单据"
+            ></el-input>
+            <el-button style="margin-left: 10px" type="" @click="searchData">查找</el-button>
+            <el-button style="margin-left: 10px" type="" @click="reset">取消</el-button>
+        </div>
+        <!--     添加入库单弹出框       -->
+        <div>
             <el-dialog title="添加入库单" :visible.sync="dialogFormVisible">
                 <el-select v-model="docNum" placeholder="请选择">
                     <el-option
@@ -16,6 +28,7 @@
                 </div>
             </el-dialog>
         </div>
+        <!--     药品清单弹出框       -->
         <div>
             <el-dialog title="药品清单" :visible.sync="dialogTableVisible">
                 <el-table :data="dialogData">
@@ -48,8 +61,10 @@
                 </el-button>
             </el-dialog>
         </div>
+        <!--     入库单列表       -->
         <div>
-            <el-table :data="storageInTable"
+            <el-table :data="storageSearchData"
+                      border
                       :row-class-name="tableRowClassName"
                       row-key="docNum">
                 <el-table-column
@@ -92,6 +107,7 @@
         name: "StorageIn",
         data() {
             return {
+                storageSearchData: [],
                 storageInTable: [],
                 medicineInfo: [],
                 orderInfo: [],
@@ -105,7 +121,8 @@
                 medicinenum: '',
                 medicinePrice: '',
                 medicinenumber: '',
-                medicineName: ''
+                medicineName: '',
+                selectVal: '',
             }
         },
         mounted() {
@@ -132,7 +149,8 @@
             },
             loadStorageIn() {
                 this.$http.get('/documenttable/getStorageIn').then(resp => {
-                    this.storageInTable = resp
+                    this.storageInTable = resp;
+                    this.storageSearchData = resp;
                 })
                 this.$http.get('/medicinetable/medicineInfo').then(resp => {
                     this.medicineInfo = resp
@@ -140,6 +158,21 @@
                 this.$http.get('/documenttable/getOrderDone').then(resp => {
                     this.orderInfo = resp
                 });
+            },
+            searchData() {
+                //并没有输入关键字时，就不要再搜索了
+                if (this.selectVal === '' || this.selectVal == null) {
+                    this.storageSearchData = JSON.parse(JSON.stringify(this.storageSearchData));
+                    return;
+                }
+                this.storageSearchData = this.storageInTable;
+                //搜索
+                let list = this.storageSearchData.filter(item => item.docNum.toString().indexOf(this.selectVal) >= 0);
+                this.storageSearchData = list;
+            },
+            reset() {
+                this.storageSearchData = JSON.parse(JSON.stringify(this.storageInTable));
+                this.selectVal = null;
             },
             showDialog(row) {
                 this.subData = row;

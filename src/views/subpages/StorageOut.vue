@@ -1,13 +1,25 @@
 <template>
     <div>
         <div>
+            <!-- 搜索框 -->
+            <el-input
+                    style="width: 20%;margin-bottom: 20px"
+                    type="text"
+                    v-model="selectVal"
+                    placeholder="搜索单据"
+            ></el-input>
+            <el-button style="margin-left: 10px" type="" @click="searchData">查找</el-button>
+            <el-button style="margin-left: 10px" type="" @click="reset">取消</el-button>
+        </div>
+        <!--     添加出库单弹出框       -->
+        <div>
             <el-dialog title="添加出库单" :visible.sync="dialogFormVisible">
-                <el-select v-model="docNum" placeholder="请选择">
+                <el-select v-model="departmentNum" placeholder="请选择">
                     <el-option
-                            v-for="item in orderInfo"
-                            :key="item.docNum"
-                            :label="item.docNum"
-                            :value="item.docNum">
+                            v-for="item in rationList"
+                            :key="item.departmentNum"
+                            :label="item.departmentName"
+                            :value="item.departmentNum">
                     </el-option>
                 </el-select>
                 <div slot="footer" class="dialog-footer">
@@ -16,6 +28,7 @@
                 </div>
             </el-dialog>
         </div>
+        <!--     药品清单弹出框       -->
         <div>
             <el-dialog title="药品清单" :visible.sync="dialogTableVisible">
                 <el-table :data="dialogData">
@@ -48,8 +61,10 @@
                 </el-button>
             </el-dialog>
         </div>
+        <!--     出库单列表       -->
         <div>
-            <el-table :data="storageOutTable"
+            <el-table :data="storageSearchData"
+                      border
                       :row-class-name="tableRowClassName"
                       row-key="docNum">
                 <el-table-column
@@ -70,7 +85,7 @@
                         <el-button
                                 size="mini"
                                 type="success"
-                                @click="completedIn(scope.$index,scope.row)">完成订单
+                                @click="completedOut(scope.$index,scope.row)">完成订单
                         </el-button>
                         <el-button
                                 size="mini"
@@ -95,7 +110,7 @@
                 storageOutTable: [],
                 medicineInfo: [],
                 orderInfo: [],
-                docNum: '',
+                departmentNum: '',
                 subData: [],
                 dialogData: [],
                 dialogTableVisible: false,
@@ -105,7 +120,10 @@
                 medicinenum: '',
                 medicinePrice: '',
                 medicinenumber: '',
-                medicineName: ''
+                medicineName: '',
+                rationList: [],
+                storageSearchData: [],
+                selectVal: '',
             }
         },
         mounted() {
@@ -132,14 +150,33 @@
             },
             loadStorageOut() {
                 this.$http.get('/documenttable/getStorageOut').then(resp => {
-                    this.storageOutTable = resp
-                })
-                this.$http.get('/medicinetable/medicineInfo').then(resp => {
-                    this.medicineInfo = resp
-                })
-                this.$http.get('/documenttable/getOrderDone').then(resp => {
-                    this.orderInfo = resp
+                    this.storageOutTable = resp;
+                    this.storageSearchData = resp;
                 });
+                this.$http.get('/medicinetable/medicineInfo').then(resp => {
+                    this.medicineInfo = resp;
+                });
+                this.$http.get('/documenttable/getOrderDone').then(resp => {
+                    this.orderInfo = resp;
+                });
+                this.$http.get('/ration/getRationList').then(resp => {
+                    this.rationList = resp;
+                })
+            },
+            searchData() {
+                //并没有输入关键字时，就不要再搜索了
+                if (this.selectVal === '' || this.selectVal == null) {
+                    this.storageSearchData = JSON.parse(JSON.stringify(this.storageSearchData));
+                    return;
+                }
+                this.storageSearchData = this.storageOutTable;
+                //搜索
+                let list = this.storageSearchData.filter(item => item.docNum.toString().indexOf(this.selectVal) >= 0);
+                this.storageSearchData = list;
+            },
+            reset() {
+                this.storageSearchData = JSON.parse(JSON.stringify(this.storageOutTable));
+                this.selectVal = null;
             },
             showDialog(row) {
                 this.subData = row;
@@ -199,22 +236,21 @@
                 this.dialogData.splice(1, 0);
             },
             insertStorageOut() {
-                console.log(this.docNum);
-                let token = window.sessionStorage.getItem("tokenStr");
-                for (const item of this.orderInfo) {
+                let user = window.sessionStorage.getItem("userid");
+                for (const item of this.rationList) {
                     console.log(item)
-                    if (item.docNum === this.docNum) {
-                        const data = item;
-                        data.docState = 1;
-                        data.docId = 2;
-                        data.docCreator = window.sessionStorage.getItem('userid');
+                    if (item.departmentNum === this.departmentNum) {
+                        const data = {
+                            ration: item,
+                            user:user
+                        }
                         console.log(data);
-                        this.$http.post("/documenttable/addDocument", data);
+                        this.$http.post("/documenttable/generateOut", data);
                         this.$router.go(0);
                     }
                 }
             },
-            completedIn(index, row) {
+            completedOut(index, row) {
                 if (row.docState === 2) {
                     this.$message.error("订单已出库");
                     return;
@@ -222,7 +258,7 @@
                 const data = {
                     docnum: row.docNum
                 }
-                this.$http.post('/documenttable/inDone', qs.stringify(data));
+                this.$http.post('/documenttable/outDone', qs.stringify(data));
                 this.$router.go(0);
             }
         }
