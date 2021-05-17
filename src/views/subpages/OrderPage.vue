@@ -138,7 +138,8 @@
             },
             loadOrder() {
                 this.$http.get('/documenttable/getOrder').then(resp => {
-                    this.documentInfo = resp
+                    this.storageSearchData = resp;
+                    this.documentInfo = resp;
                 });
                 this.$http.get('/medicinetable/medicineInfo').then(resp => {
                     this.medicineInfo = resp
